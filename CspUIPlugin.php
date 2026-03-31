@@ -20,6 +20,8 @@ use PKP\plugins\Hook;
 
 
 class CspUIPlugin extends GenericPlugin {
+	private const CSS_VERSION = '202603311146';
+
 
 
     /**
@@ -30,7 +32,12 @@ class CspUIPlugin extends GenericPlugin {
     public function register($category, $path, $mainContextId = null)
     {
         $success = parent::register($category, $path, $mainContextId);
+
         if ($success && $this->getEnabled()) {
+            $request = Application::get()->getRequest();
+            $url = $request->getBaseUrl() . '/' . $this->getPluginPath() . '/styles/style.css';
+            $templateMgr = TemplateManager::getManager($request);
+            $templateMgr->addStyleSheet('CspUI' . self::CSS_VERSION, $url, ['contexts' => 'backend']);
 
             Hook::add('TemplateManager::display', [$this, 'templateManagerDisplay']);
         }

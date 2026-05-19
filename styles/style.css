@@ -1,4 +1,4 @@
 /* Esconde o botão "Definir contato principal" na lista de colaboradores */
-.contributorsListPanel .listPanel__body .listPanel__items .listPanel__itemsList .listPanel__item .listPanel__itemSummary .listPanel__itemActions .pkpButton:first-child {
+/* .contributorsListPanel .listPanel__body .listPanel__items .listPanel__itemsList .listPanel__item .listPanel__itemSummary .listPanel__itemActions .pkpButton:first-child {
 	display: none !important;
-}
+} */

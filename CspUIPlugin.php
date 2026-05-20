@@ -40,6 +40,7 @@ class CspUIPlugin extends GenericPlugin {
             $templateMgr->addStyleSheet('CspUI' . self::CSS_VERSION, $url, ['contexts' => 'backend']);
 
             Hook::add('TemplateManager::display', [$this, 'templateManagerDisplay']);
+            Hook::add('TemplateManager::fetch', [$this, 'templateManagerFetch']);
         }
 
         return $success;
@@ -53,6 +54,50 @@ class CspUIPlugin extends GenericPlugin {
     public function getDescription()
     {
         return __('plugins.generic.cspUI.description');
+    }
+
+    public function templateManagerFetch(string $_hookName, array $args): bool
+    {
+        if ($args[1] !== 'controllers/grid/gridRow.tpl') {
+            return false;
+        }
+
+        $templateVars = $args[0]->getTemplateVars();
+
+        if (!isset($templateVars['grid']) || !isset($templateVars['row'])) {
+            return false;
+        }
+
+        if ($templateVars['grid']->_id !== 'grid-articlegalleys-articlegalleygrid') {
+            return false;
+        }
+
+        $galley = $templateVars['row']->getData();
+
+        if (!$galley) {
+            return false;
+        }
+
+        $request = Application::get()->getRequest();
+        $submission = $templateVars['row']->getSubmission();
+
+        $viewUrl = $request->getDispatcher()->url(
+            $request,
+            Application::ROUTE_PAGE,
+            null,
+            'article',
+            'view',
+            [$submission->getBestId(), $galley->getBestGalleyId()]
+        );
+
+        if (isset($args[0]->tpl_vars['cells']->value[0])) {
+            $cell = $args[0]->tpl_vars['cells']->value[0];
+            $cell = preg_replace('/\bhref="#"/', 'href="' . htmlspecialchars($viewUrl) . '" target="_blank"', $cell, 1);
+            $cell = preg_replace('/<script\b[^>]*>.*?<\/script>/s', '', $cell);
+            $args[0]->tpl_vars['cells']->value[0] = $cell;
+        }
+
+        return false;
     }
 
     public function templateManagerDisplay($hookName, $args){

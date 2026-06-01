@@ -90,6 +90,7 @@ class CspUIPlugin extends GenericPlugin {
             [$submission->getBestId(), $galley->getBestGalleyId()]
         );
 
+        // Em arquivos de Composição Final, substitui link de download por link para abrir arquivo para ser usado no processo de inserção de Material suplementar
         if (isset($args[0]->tpl_vars['cells']->value[0])) {
             $cell = $args[0]->tpl_vars['cells']->value[0];
             $cell = preg_replace('/\bhref="#"/', 'href="' . htmlspecialchars($viewUrl) . '" target="_blank"', $cell, 1);

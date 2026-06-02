@@ -39,6 +39,7 @@ class CspUIPlugin extends GenericPlugin {
             $templateMgr = TemplateManager::getManager($request);
             $templateMgr->addStyleSheet('CspUI' . self::CSS_VERSION, $url, ['contexts' => 'backend']);
 
+            Hook::add('LoadHandler', [$this, 'loadHandler']);
             Hook::add('TemplateManager::display', [$this, 'templateManagerDisplay']);
             Hook::add('TemplateManager::fetch', [$this, 'templateManagerFetch']);
         }
@@ -54,6 +55,15 @@ class CspUIPlugin extends GenericPlugin {
     public function getDescription()
     {
         return __('plugins.generic.cspUI.description');
+    }
+
+    public function loadHandler(string $_hookName, array $args): bool
+    {
+        if ($args[0] === 'article') {
+            $args[3] = new \APP\plugins\generic\cspUI\pages\CspArticleHandler();
+            return true;
+        }
+        return false;
     }
 
     public function templateManagerFetch(string $_hookName, array $args): bool

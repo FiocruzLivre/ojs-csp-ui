@@ -12,10 +12,11 @@
 
 namespace APP\plugins\generic\cspUI;
 
-use PKP\plugins\GenericPlugin;
-use APP\template\TemplateManager;
 use APP\core\Application;
+use APP\template\TemplateManager;
+use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
+use PKP\security\Role;
 
 
 
@@ -57,6 +58,7 @@ class CspUIPlugin extends GenericPlugin {
         return __('plugins.generic.cspUI.description');
     }
 
+    // Permite acesso público a materiais suplementares sem autenticação
     public function loadHandler(string $_hookName, array $args): bool
     {
         if ($args[0] === 'article') {
@@ -124,6 +126,17 @@ class CspUIPlugin extends GenericPlugin {
                 'contexts' => ['backend']
             ]
         );
+
+        // Esconde botão SetPrimaryContact de usuários com nível de permissão menor do que Gerente da Revista
+        $user    = $request->getUser();
+        $context = $request->getContext();
+        if ($user && $context && !$user->hasRole([Role::ROLE_ID_MANAGER, Role::ROLE_ID_SITE_ADMIN], $context->getId())) {
+            $templateMgr->addStyleSheet(
+                'CspUIHidePrimaryContact',
+                '.contributorsListPanel .listPanel__itemActions .pkpButton:first-child { display: none !important; }',
+                ['contexts' => 'backend', 'inline' => true]
+            );
+        }
 
         return false;
     }

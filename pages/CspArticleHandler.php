@@ -13,13 +13,13 @@ class CspArticleHandler extends ArticleHandler
 
     public function initialize($request, $args = [])
     {
-        // Lê os args sem consumi-los para verificar o gênero antes dos 404 do parent
+        // Peek at the args without consuming them, to check the genre before the parent's 404s
         $peek    = $args;
         $urlPath = empty($peek) ? 0 : array_shift($peek);
         $subPath = empty($peek) ? 0 : array_shift($peek);
 
         if ($subPath === 'version') {
-            array_shift($peek); // descarta publicationId
+            array_shift($peek); // discard publicationId
             $galleyId = empty($peek) ? 0 : array_shift($peek);
         } else {
             $galleyId = $subPath;
@@ -60,7 +60,7 @@ class CspArticleHandler extends ArticleHandler
     }
 
     /**
-     * Replica o initialize() do parent pulando os dois checks de status de publicação.
+     * Replicates the parent's initialize(), skipping the two publication-status checks.
      */
     private function _initializeAsPublished($request, array $args): void
     {
@@ -71,7 +71,7 @@ class CspArticleHandler extends ArticleHandler
             : Repo::submission()->getByUrlPath($urlPath, $request->getContext()->getId());
 
         if (!$this->article) {
-            $request->getDispatcher()->handle404();
+            throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
         }
 
         $currentUrlPath = $this->article->getBestId();
@@ -91,15 +91,14 @@ class CspArticleHandler extends ArticleHandler
                 }
             }
             if (!$this->publication) {
-                $request->getDispatcher()->handle404();
+                throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
             }
         } else {
             $this->publication = $this->article->getCurrentPublication();
             $galleyId = $subPath;
         }
 
-        // Pula os checks de status de publicação (linhas 125 e 156 do parent)
-
+        // Skip the parent's publication-status checks
         if ($galleyId && in_array($request->getRequestedOp(), ['view', 'download'])) {
             foreach ($this->publication->getData('galleys') as $galley) {
                 if ($galley->getBestGalleyId() == $galleyId) {
@@ -109,8 +108,18 @@ class CspArticleHandler extends ArticleHandler
                     $request->redirect(null, $request->getRequestedPage(), $request->getRequestedOp(), [$this->article->getBestId(), $galley->getBestGalleyId()]);
                 }
             }
+            // Redirect to the current version if the request points to an outdated
+            // galley (matches 3.5 core's ArticleHandler::initialize() fallback)
             if (!$this->galley) {
-                $request->getDispatcher()->handle404();
+                $publications = $this->article->getPublishedPublications();
+                foreach ($publications as $publication) {
+                    foreach ($publication->getData('galleys') as $galley) {
+                        if ($galley->getBestGalleyId() == $galleyId) {
+                            $request->redirect(null, $request->getRequestedPage(), $request->getRequestedOp(), [$this->article->getBestId()]);
+                        }
+                    }
+                }
+                throw new \Symfony\Component\HttpKernel\Exception\NotFoundHttpException();
             }
         }
 

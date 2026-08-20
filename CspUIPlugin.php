@@ -58,9 +58,9 @@ class CspUIPlugin extends GenericPlugin {
         return __('plugins.generic.cspUI.description');
     }
 
-    // Permite acesso público a materiais suplementares sem autenticação
     public function loadHandler(string $_hookName, array $args): bool
     {
+        // Permite acesso público a materiais suplementares sem autenticação
         if ($args[0] === 'article') {
             $args[3] = new \APP\plugins\generic\cspUI\pages\CspArticleHandler();
             return true;

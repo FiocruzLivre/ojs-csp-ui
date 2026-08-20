@@ -118,15 +118,6 @@ class CspUIPlugin extends GenericPlugin {
         $templateMgr = $args[0];
         $request = Application::get()->getRequest();
 
-        $templateMgr->addJavaScript(
-            'cspJS',
-            $request->getBaseUrl() . '/' . $this->getPluginPath() . '/js/build.js',
-            [
-                'priority' => TemplateManager::STYLE_SEQUENCE_LATE,
-                'contexts' => ['backend']
-            ]
-        );
-
         // Esconde botão SetPrimaryContact de usuários com nível de permissão menor do que Gerente da Revista
         $user    = $request->getUser();
         $context = $request->getContext();
